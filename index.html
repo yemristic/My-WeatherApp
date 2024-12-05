@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather App</title>
+  <style>
+    /* Night Vision Background */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #001d3d, #000000); /* Night gradient */
+      height: 100vh;
+      overflow-x: hidden;
+      color: white;
+    }
+
+    .container {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .inputDiv {
+      margin-bottom: 20px;
+    }
+
+    .input {
+      width: 300px;
+      height: 30px;
+      color: black;
+      padding-left: 20px;
+      border-radius: 50px;
+    }
+
+    .search {
+      background-color: #ff6f61;
+      color: white;
+      border: none;
+      width: 70px;
+      height: 36px;
+      margin-left: -20px;
+      border-radius: 0px 50px 50px 0px;
+      cursor: pointer;
+    }
+
+    .display {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, auto);
+      gap: 10px;
+      margin: 20px auto;
+      padding: 10px;
+      max-width: 800px;
+      text-align: left;
+      background-color: rgba(255, 255, 255, 0.1); /* Slight transparency */
+      border-radius: 10px;
+    }
+
+    .display div {
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .snowflake {
+      position: fixed;
+      top: -10px;
+      color: white;
+      font-size: 1em;
+      opacity: 0.8;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10px);
+      }
+      100% {
+        transform: translateY(100vh);
+      }
+    }
+
+    /* Snowflake font size responsiveness */
+    @media (max-width: 768px) {
+      .snowflake {
+        font-size: 0.8em;
+      }
+
+      .display {
+        grid-template-columns: 1fr; /* Stack items in one column */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome to My Weather App</h2>
+    <h3>Search weather of any city you like</h3>
+    <div class="inputDiv">
+      <input id="userQuery" placeholder="Enter city name..." class="input" type="text" />
+      <button id="searchButton" class="search">Search</button>
+    </div>
+    <div id="displayItems" class="display"></div>
+  </div>
+<!-- Resulting clout  -->
+<div id="displayItems" class="display"></div>
+<div id="weatherIcon" style="text-align: center; margin-top: 20px;"></div>
+
+  <script>
+    // API Key for OpenWeather
+    const API_KEY = "4cecf8143838a9ff4eaef4f1a07bf673";
+
+// Fetch weather data for a given city
+const fetchWeather = async () => {
+  const city = document.getElementById("userQuery").value;
+  const displayItems = document.getElementById("displayItems");
+  const weatherIconDiv = document.getElementById("weatherIcon");
+  displayItems.innerHTML = "Loading...";
+  weatherIconDiv.innerHTML = "";
+
+  if (!city) {
+    displayItems.innerHTML = "Please enter a city name.";
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
+    );
+
+    if (!response.ok) {
+      displayItems.innerHTML = `Error: City not found.`;
+      return;
+    }
+
+    const data = await response.json();
+
+    // Update UI with fetched data
+    displayItems.innerHTML = `
+      <div><strong>Weather:</strong> ${data.weather[0].main}</div>
+      <div><strong>Description:</strong> ${data.weather[0].description}</div>
+      <div><strong>City:</strong> ${data.name}</div>
+      <div><strong>Longitude:</strong> ${data.coord.lon}</div>
+      <div><strong>Latitude:</strong> ${data.coord.lat}</div>
+      <div><strong>Temperature:</strong> ${data.main.temp}°C</div>
+    `;
+
+    // Fetch and display the weather icon
+    const iconCode = data.weather[0].icon;
+    const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+    weatherIconDiv.innerHTML = `<img src="${iconUrl}" alt="Weather Icon" style="width: 100px; height: 100px;" />`;
+  } catch (error) {
+    displayItems.innerHTML = `Error fetching weather data. Please try again.`;
+    console.error("Error:", error);
+  }
+};
+
+// Add falling snow animation
+const createSnowflake = () => {
+  const snowflake = document.createElement("div");
+  snowflake.classList.add("snowflake");
+  snowflake.textContent = "❄";
+  snowflake.style.left = `${Math.random() * 100}vw`; // Random position
+  snowflake.style.animationDuration = `${Math.random() * 3 + 2}s`; // Random fall speed
+  snowflake.style.fontSize = `${Math.random() * 10 + 10}px`; // Random size
+  document.body.appendChild(snowflake);
+
+  // Remove snowflake after falling
+  setTimeout(() => {
+    snowflake.remove();
+  }, 5000);
+};
+
+// Periodically create snowflakes
+setInterval(createSnowflake, 150);
+
+// Add event listener for the search button
+document.getElementById("searchButton").addEventListener("click", fetchWeather);
+
+  </script>
+</body>
+</html>
